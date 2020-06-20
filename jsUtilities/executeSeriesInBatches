@@ -1,0 +1,74 @@
+
+var async = require('async');
+var tasks = [];
+// executeSeries();
+executeSeriesInBatches();
+
+function executeSeriesInBatches() {
+    var moment = require('moment');
+    var currentGMT = moment();
+    // console.log(currentGMT.format('DD-MMM-YYYY hh:mm:ss.SSS A'));
+    var r = currentGMT.subtract(currentGMT.parseZone().utcOffset(), 'minutes');
+    // console.log(r);
+    console.log('CURRENT GMT: ' + currentGMT.format('DD-MMM-YYYY hh:mm:ss.SSS A'));
+    console.log('running at GMT: ' + moment(new Date).subtract(currentGMT.parseZone().utcOffset(), 'minutes').format('DD-MMM-YYYY hh:mm:ss.SSS A') );
+
+
+    for (var i = 0; i < 13; i++) {
+        (function () {
+            var theI = i;
+            tasks.push(function (callback) {
+                withArgs(theI);
+                callback(null)
+            });
+            // console.log(bank);
+        })();
+    }
+
+    var batchSize = 10;
+    var waitInterval = 5000;
+
+    var noOfBatches = tasks.length % batchSize === 0 ? tasks.length / batchSize : Math.floor(tasks.length / batchSize) + 1;
+
+    for (var i = 0; i < noOfBatches; i++) {
+        (function () {
+            var beginIndex = i * batchSize;
+            var endIndex = ((i + 1) * batchSize) - 1;
+            setTimeout(function () {
+                console.log(beginIndex, endIndex);
+                async.series(tasks.slice(beginIndex, endIndex + 1), function (err, results) {
+                    console.log('done executing series from index ' + beginIndex + ' to index ' + endIndex);
+                });
+            }, waitInterval);
+        })();
+    }
+
+    // async.series(tasks, function (err, results) {
+    //     console.log('done executing series');
+    // });
+}
+
+function executeSeries() {
+    tasks.push(function (callback) {
+        withArgs({p: 1});
+        callback(null);
+    });
+    tasks.push(function (callback) {
+        sampleFunction();
+        callback(null);
+    });
+
+
+    async.series(tasks, function (err, results) {
+        console.log('done executing series');
+    });
+}
+
+function sampleFunction() {
+    console.log('sampleFunction', arguments);
+}
+
+function withArgs(args) {
+    // console.log('withArgs', arguments);
+    console.log('withArgs', args);
+}
