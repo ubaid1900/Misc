@@ -1,0 +1,63 @@
+var moment = require('moment');
+
+
+var configs = {
+    scheduleEvery: 60 * 1000, // for dev: every x minutes/seconds
+    startAt: '6:38 AM GMT' // for dev: next available minute,
+
+    // scheduleEvery = 24 * 60 * 60 * 1000, // for prod: every 24 hours
+    // startAt = '10:00 PM GMT',
+};
+var idToClear;
+
+function schedule(appConfigs) {
+
+    if (appConfigs && appConfigs.MFS_UTILITY_CONFIG) {
+        configs = appConfigs.MFS_UTILITY_CONFIG;
+    }
+
+    var currentGMT = moment();
+    // console.log(currentGMT.format('DD-MMM-YYYY hh:mm:ss.SSS A'));
+    var r = currentGMT.subtract(currentGMT.parseZone().utcOffset(), 'minutes');
+    // console.log(r);
+    console.log('CURRENT GMT: ' + currentGMT.format('DD-MMM-YYYY hh:mm:ss.SSS A'));
+
+    // var m = moment('Wed, 08 Feb 2017 10:09:19 GMT', 'ddd, DD MMM YYYY HH:mm:ss'); // Parse string in local time
+    var mStartAt = moment(configs.startAt, 'HH:mm:ss A'); // Parse string in local time
+    console.log(mStartAt.format('DD-MMM-YYYY hh:mm:ss.SSS A'));
+
+    var milliSecondsToWait = 0;
+    if (currentGMT <= mStartAt) {
+        var duration = moment.duration(mStartAt.diff(currentGMT));
+        // console.log(duration.asHours());
+        // console.log(duration.asMilliseconds());
+        // console.log(Math.ceil(duration.asMilliseconds()));
+        milliSecondsToWait = Math.ceil(duration.asMilliseconds());
+    } else {
+        mStartAt.add(1, 'days');
+        console.log(mStartAt.format('DD-MMM-YYYY hh:mm:ss.SSS A'));
+
+        var duration = moment.duration(mStartAt.diff(currentGMT));
+        // console.log(duration.asHours());
+        // console.log(duration.asMilliseconds());
+        // console.log(Math.ceil(duration.asMilliseconds()));
+        milliSecondsToWait = Math.ceil(duration.asMilliseconds());
+    }
+
+    console.log('scheduled after: ' + milliSecondsToWait + 'ms, ' + (milliSecondsToWait / 1000) + 's, ' + (milliSecondsToWait / (60 * 1000)) + 'm.');
+    idToClear = setTimeout(execute, milliSecondsToWait);
+}
+
+function execute() {
+    console.log('running at: ' + moment(new Date).format('DD-MMM-YYYY hh:mm:ss.SSS A') + ' id to clear: ' + JSON.stringify(idToClear));
+    clearTimeout(idToClear);
+    clearInterval(idToClear);
+    idToClear = setInterval(execute, configs.scheduleEvery);
+}
+
+module.exports = {
+    schedule: schedule({
+        scheduleEvery: 30 * 1000, // for dev: every x minutes/seconds
+        startAt: '6:51 AM GMT'
+    })
+};
