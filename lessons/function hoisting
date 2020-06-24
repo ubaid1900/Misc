@@ -1,4 +1,4 @@
-// lets have a look at this common style of function implementation
+// let's have a look at this common style of function implementation
 
 function f() {
     console.log('f called!');
@@ -9,7 +9,7 @@ f();
 // 'f called!'
 
 
-// lets reverse the call and declaration
+// let's reverse the call and declaration
 
 f1();
 function f1() {
