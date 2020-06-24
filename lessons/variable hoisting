@@ -1,0 +1,48 @@
+// now lets look at the variable hoisting, pay attention to variable h and how it is declared/'re-declared' ONLY THE DECLARATION IS HOISTED NOT THE INITIALIZATION.
+
+// the variable is declared and initialized, hoisting1 is called before its declaration, so that is hoisted
+var h = 'h';
+hoistisng1();
+function hoistisng1() {
+    console.log('hoisting1', h);
+}
+
+// here the same variable h is re-declared in between the two console.log statements, because the variable h is hoisted, we get undefined for both the console logs
+function hoisting2() {
+    console.log('hoisting2', h);
+    var h;
+    console.log('hoisting2', h);
+}
+hoisting2();
+
+// here the same variable h is re-declared AND INITIALIZED in between the two console.log statements, because the variable h is hoisted we get undefined first and then the value after initialization
+hoisting3();
+function hoisting3() {
+    console.log('hoisting3', h);
+    var h = 'ah';
+    console.log('hoisting3', h);
+}
+
+// now let's change the var to let and we see that hoisting results in reference error rather than undefined
+
+let h = 'h';
+hoistisng1();
+
+function hoistisng1() {
+    console.log('hoisting1', h);
+}
+
+function hoisting2() {
+    console.log('hoisting2', h);
+    let h;
+    console.log('hoisting2', h);
+}
+hoisting2();
+
+hoisting3();
+
+function hoisting3() {
+    console.log('hoisting3', h);
+    let h = 'ah';
+    console.log('hoisting3', h);
+}
