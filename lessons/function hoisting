@@ -1,0 +1,25 @@
+// lets have a look at this common style of function implementation
+
+function f() {
+    console.log('f called!');
+}
+
+f();
+
+// 'f called!'
+
+
+// lets reverse the call and declaration
+
+f1();
+function f1() {
+    console.log('f1 called');
+}
+
+// it still works, behind the scenes the function f1 will get hoisted i.e. pulled up before it is called
+
+// but hoisting doesn't work for function expressions, let's try the code below. We get a 'ReferenceError: f2Expression is not defined'
+f2Expression();
+let f2Expression = function f2() {
+    console.log('f2 called!');
+};
