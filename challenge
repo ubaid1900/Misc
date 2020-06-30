@@ -1,0 +1,63 @@
+const players = [
+    {
+        name: 'B', tiles:
+            [
+                {terrain: 'A', cost: 1},
+                {terrain: 'B', cost: 2},
+                {terrain: 'C', cost: 4},
+            ]
+    },
+    {
+        name: 'B', tiles:
+            [
+                {terrain: 'A', cost: 1},
+                {terrain: 'B', cost: 2},
+                {terrain: 'C', cost: 4},
+            ]
+    }
+];
+// $BA
+// C*B
+// AA@
+const map =
+    ['$BA'
+        , 'C*B'
+        , 'AA@'];
+const totalhops = map[0].length - 1 + map.length - 1;
+console.log(totalhops);
+getAllPaThs();
+
+function getAllPaThs() {
+    let start = {h: -1, v: -1};
+    let end = {h: -1, v: -1};
+    for (let i = 0; i < map.length; i++) {
+        if (map[i].indexOf('$') > -1) {
+            start.v = i;
+            start.h = map[i].indexOf('$');
+        }
+    }
+    for (let i = 0; i < map.length; i++) {
+        if (map[i].indexOf('@') > -1) {
+            end.v = i;
+            end.h = map[i].indexOf('@');
+        }
+    }
+    if (start.h < 0 || start.v < 0) {
+        // THROW;
+        return;
+    }
+    console.log(start);
+    console.log(end);
+
+    const paths = [];
+    const visitedNodes = [];
+    const nodePaths = [];
+
+    paths.push('$');
+    nodePaths.push(start);
+
+    if () {
+    }
+
+
+}
