@@ -1,35 +1,48 @@
+//jshint esnext:true
 const players = [
     {
         name: 'B', tiles:
             [
-                {terrain: 'A', cost: 1},
-                {terrain: 'B', cost: 2},
-                {terrain: 'C', cost: 4},
+                { terrain: 'A', cost: 1 },
+                { terrain: 'B', cost: 2 },
+                { terrain: 'C', cost: 4 },
             ]
     },
     {
         name: 'B', tiles:
             [
-                {terrain: 'A', cost: 1},
-                {terrain: 'B', cost: 2},
-                {terrain: 'C', cost: 4},
+                { terrain: 'A', cost: 1 },
+                { terrain: 'B', cost: 2 },
+                { terrain: 'C', cost: 4 },
             ]
     }
 ];
 // $BA
 // C*B
 // AA@
-const map =
-    ['$BA'
-        , 'C*B'
-        , 'AA@'];
-const totalhops = map[0].length - 1 + map.length - 1;
-console.log(totalhops);
+const map = ['$BA', 'C*B', 'AA@'];
+const totalHops = map[0].length - 1 + map.length - 1;
+// console.log(totalHops);
 getAllPaThs();
 
+function generateNext(node) {
+    const height = map.length;
+    const width = map[0].length;
+    //   console.log(height, width);
+
+    // console.log(node.h, node.v);
+    const right = { h: node.h + 1, v: node.v };
+    const left = { h: node.h - 1, v: node.v };
+    const up = { h: node.h, v: node.v - 1 };
+    const down = { h: node.h, v: node.v + 1 };
+
+    //   console.log([right, left, up, down]);
+    return [right, left, up, down].filter(f => f.h > -1 && f.v > -1 && f.h < width && f.v < height);
+}
+
 function getAllPaThs() {
-    let start = {h: -1, v: -1};
-    let end = {h: -1, v: -1};
+    let start = { h: -1, v: -1 };
+    let end = { h: -1, v: -1 };
     for (let i = 0; i < map.length; i++) {
         if (map[i].indexOf('$') > -1) {
             start.v = i;
@@ -46,18 +59,34 @@ function getAllPaThs() {
         // THROW;
         return;
     }
-    console.log(start);
-    console.log(end);
+    //     console.log(start);
+    //     console.log(end);
 
-    const paths = [];
+    let paths = [];
     const visitedNodes = [];
     const nodePaths = [];
 
     paths.push('$');
     nodePaths.push(start);
 
-    if () {
+    let nextNodes = generateNext(start);
+
+    while (nextNodes) {
+        for (let i = 0; i < nextNodes.length; i++) {
+            // console.log(map[nextNodes[i].h][nextNodes[i].v]);
+            if (visitedNodes.find(f => f.h === nextNodes[i].h && f.v === nextNodes[i].v)) {
+                continue;
+            }
+            visitedNodes.push(nextNodes[i]);
+            paths.push(paths.map(p => p + map[nextNodes[i].h][nextNodes[i].v])[0]);
+            nodePaths.push(nodePaths.map(p => p + map[nextNodes[i].h][nextNodes[i].v])[0]);
+            // nodePaths.push(nextNodes[i].h, nextNodes[i].v);
+            debugger;
+            nextNodes = generateNext(nextNodes[i]);
+        }
+        console.log(paths);
     }
-
-
 }
+// $BA
+// C*B
+// AA@
