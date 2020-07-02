@@ -53,7 +53,6 @@ function calculateCosts(paths) {
     return playerCosts;
 }
 
-
 function generateNext(node) {
     const height = map.length;
     const width = map[0].length;
@@ -86,18 +85,14 @@ function getAllPaths() {
         }
     }
     if (start.h < 0 || start.v < 0) {
-        // THROW;
+        // THROW?;
+        console.log('unable to find a starting position');
         return;
     }
     //     console.log(start);
     //     console.log(end);
 
     let paths = [];
-    // const visitedNodes = [];
-    // const nodePaths = [];
-
-    // nodePaths.push(start);
-
     paths.push({ path: '$', visitedNodes: [start], pathCoordinates: [start] });
     // $BA
     // C*B
@@ -109,7 +104,14 @@ function getAllPaths() {
             const element = prevRelevantPaths[i];
             let nextNodes = generateNext(element.pathCoordinates[element.pathCoordinates.length - 1]);
             for (let j = 0; j < nextNodes.length; j++) {
-                // var v = paths.map(p => p + map[nextNodes[i].h][nextNodes[i].v])[0];
+                if (paths.find(p => p.path === element.path)
+                    .visitedNodes.find(v => v.h === nextNodes[j].h && v.v === nextNodes[j].v)) {
+                    continue;
+                }
+                if (map[nextNodes[j].h][nextNodes[j].v] === '*') {
+                    continue;
+                }
+
                 var path = {
                     path: element.path + map[nextNodes[j].h][nextNodes[j].v],
                     visitedNodes: [...element.visitedNodes, nextNodes[j]],
@@ -120,12 +122,8 @@ function getAllPaths() {
             }
         }
     }
-    paths = paths.filter(f => f.path.length >= totalHops);
-    paths = paths.filter(f => f.path.indexOf('*') < 0);
-    paths = paths.filter(f => f.path.lastIndexOf('$') === 0);
-    paths = paths.filter(f => f.path.indexOf('@') === f.path.length - 1);
-
-    console.log(paths);
+    paths = paths.filter(f => f.path.length > totalHops);
+    console.log(JSON.stringify(paths));
     return paths;
 }
 // $BA
