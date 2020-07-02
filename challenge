@@ -1,7 +1,7 @@
 //jshint esnext:true
 const players = [
     {
-        name: 'B', tiles:
+        name: 'Bob', tiles:
             [
                 { terrain: 'A', cost: 1 },
                 { terrain: 'B', cost: 2 },
@@ -9,11 +9,11 @@ const players = [
             ]
     },
     {
-        name: 'B', tiles:
+        name: 'Tim', tiles:
             [
-                { terrain: 'A', cost: 1 },
-                { terrain: 'B', cost: 2 },
-                { terrain: 'C', cost: 4 },
+                { terrain: 'A', cost: 3 },
+                { terrain: 'B', cost: 5 },
+                { terrain: 'C', cost: 1 },
             ]
     }
 ];
@@ -23,7 +23,36 @@ const players = [
 const map = ['$BA', 'C*B', 'AA@'];
 const totalHops = map[0].length - 1 + map.length - 1;
 // console.log(totalHops);
-getAllPaThs();
+const allPaths = getAllPaths();
+const costs = calculateCosts(allPaths);
+const lowestCost = costs.sort((a, b) => a.totalCost < b.totalCost)[0].totalCost;
+const winners = costs.filter(m => m.totalCost === lowestCost);
+console.log(`The ${winners.length === 1 ? 'WINNER is' : 'WINNERS are'}:  ${JSON.stringify(winners)}`);
+
+function calculateCosts(paths) {
+    const playerCosts = [];
+    for (let playerIndex = 0; playerIndex < players.length; playerIndex++) {
+        const player = players[playerIndex];
+        for (let pathIndex = 0; pathIndex < paths.length; pathIndex++) {
+            const path = paths[pathIndex];
+            const playerCost = { name: player.name, totalCost: 0, path: path.path };
+            for (let i = 0; i < path.path.length; i++) {
+                const char = path.path[i];
+                if (char === '$') {
+                    continue;
+                }
+                if (char === '@') {
+                    playerCost.totalCost++;
+                    continue;
+                }
+                playerCost.totalCost += player.tiles.find(f => f.terrain === char).cost;
+            }
+            playerCosts.push(playerCost);
+        }
+    }
+    return playerCosts;
+}
+
 
 function generateNext(node) {
     const height = map.length;
@@ -37,10 +66,11 @@ function generateNext(node) {
     const down = { h: node.h, v: node.v + 1 };
 
     //   console.log([right, left, up, down]);
-    return [right, left, up, down].filter(f => f.h > -1 && f.v > -1 && f.h < width && f.v < height);
+    const validNodes = [right, left, up, down].filter(f => f.h > -1 && f.v > -1 && f.h < width && f.v < height);
+    return validNodes;
 }
 
-function getAllPaThs() {
+function getAllPaths() {
     let start = { h: -1, v: -1 };
     let end = { h: -1, v: -1 };
     for (let i = 0; i < map.length; i++) {
@@ -63,29 +93,40 @@ function getAllPaThs() {
     //     console.log(end);
 
     let paths = [];
-    const visitedNodes = [];
-    const nodePaths = [];
+    // const visitedNodes = [];
+    // const nodePaths = [];
 
-    paths.push('$');
-    nodePaths.push(start);
+    // nodePaths.push(start);
 
-    let nextNodes = generateNext(start);
+    paths.push({ path: '$', visitedNodes: [start], pathCoordinates: [start] });
+    // $BA
+    // C*B
+    // AA@
 
-    while (nextNodes) {
-        for (let i = 0; i < nextNodes.length; i++) {
-            // console.log(map[nextNodes[i].h][nextNodes[i].v]);
-            if (visitedNodes.find(f => f.h === nextNodes[i].h && f.v === nextNodes[i].v)) {
-                continue;
+    while (paths[paths.length - 1].path.length <= totalHops) {
+        const prevRelevantPaths = paths.filter(f => f.path.length === paths[paths.length - 1].path.length);
+        for (let i = 0; i < prevRelevantPaths.length; i++) {
+            const element = prevRelevantPaths[i];
+            let nextNodes = generateNext(element.pathCoordinates[element.pathCoordinates.length - 1]);
+            for (let j = 0; j < nextNodes.length; j++) {
+                // var v = paths.map(p => p + map[nextNodes[i].h][nextNodes[i].v])[0];
+                var path = {
+                    path: element.path + map[nextNodes[j].h][nextNodes[j].v],
+                    visitedNodes: [...element.visitedNodes, nextNodes[j]],
+                    pathCoordinates: [...element.pathCoordinates, nextNodes[j]
+                    ]
+                };
+                paths.push(path);
             }
-            visitedNodes.push(nextNodes[i]);
-            paths.push(paths.map(p => p + map[nextNodes[i].h][nextNodes[i].v])[0]);
-            nodePaths.push(nodePaths.map(p => p + map[nextNodes[i].h][nextNodes[i].v])[0]);
-            // nodePaths.push(nextNodes[i].h, nextNodes[i].v);
-            debugger;
-            nextNodes = generateNext(nextNodes[i]);
         }
-        console.log(paths);
     }
+    paths = paths.filter(f => f.path.length >= totalHops);
+    paths = paths.filter(f => f.path.indexOf('*') < 0);
+    paths = paths.filter(f => f.path.lastIndexOf('$') === 0);
+    paths = paths.filter(f => f.path.indexOf('@') === f.path.length - 1);
+
+    console.log(paths);
+    return paths;
 }
 // $BA
 // C*B
