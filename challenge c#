@@ -1,0 +1,208 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+
+// usage : new StoneEdgeShortestPath().Run();
+namespace Challenges
+{
+    public class PlayerCost
+    {
+        public string Name { get; set; }
+        public string Path { get; set; }
+        public int TotalCost { get; set; }
+    }
+    public class Path
+    {
+        public string PathString { get; set; }
+        public List<Node> VisitedNodes { get; set; }
+        public List<Node> PathCoordinates { get; set; }
+
+    }
+    public class Node
+    {
+        public int H { get; set; }
+        public int V { get; set; }
+    }
+    public class Tile
+    {
+        public char Terrain { get; set; }
+        public int Cost { get; set; }
+    }
+    public class Player
+    {
+        public string Name { get; set; }
+        public List<Tile> Tiles { get; set; }
+    }
+    public class StoneEdgeShortestPath
+    {
+        string[] Map;
+        List<Player> players;
+        int totalHops;
+        public void Run()
+        {
+            // read xml
+            // build objects
+
+            players = new List<Player>()
+            {
+                new Player()
+                {
+                    Name= "Bob",
+                    Tiles = new List<Tile>()
+                    {
+                        new Tile() { Terrain= 'A', Cost= 1 },
+                        new Tile() { Terrain= 'B', Cost= 5 },
+                        new Tile() { Terrain= 'C', Cost= 4 }
+                    }
+                },
+                new Player()
+                {
+                    Name= "Tim",
+                    Tiles = new List<Tile>()
+                    {
+                        new Tile() { Terrain= 'A', Cost= 3 },
+                        new Tile() { Terrain= 'B', Cost= 5 },
+                        new Tile() { Terrain= 'C', Cost= 1 }
+                    }
+                }
+            };
+            Map = new string[] { "$BA", "C*B", "AA@" };
+            totalHops = Map[0].Length - 1 + Map.Length - 1;
+            // console.log(totalHops);
+            var allPaths = GetAllPaths();
+            var costs = calculateCosts(allPaths);
+            var lowestCost = costs.Min(c => c.TotalCost);
+            var winners = costs.Where(m => m.TotalCost == lowestCost);
+            var customText = winners.Count() == 1 ? "WINNER is " : "WINNERS are ";
+            var winDetails = string.Join(", ", winners.Select(w => w.Name + " " + w.Path).ToArray());
+            Console.WriteLine($"The {customText}{winDetails}");
+        }
+
+
+        // $BA
+        // C*B
+        // AA@
+
+
+        public List<Path> GetAllPaths()
+        {
+            var start = new Node() { H = -1, V = -1 };
+            var end = new Node() { H = -1, V = -1 };
+            for (var i = 0; i < Map.Length; i++)
+            {
+                if (Map[i].IndexOf('$') > -1)
+                {
+                    start.V = i;
+                    start.H = Map[i].IndexOf("$");
+                }
+            }
+            for (var i = 0; i < Map.Length; i++)
+            {
+                if (Map[i].IndexOf("@") > -1)
+                {
+                    end.V = i;
+                    end.H = Map[i].IndexOf("@");
+                }
+            }
+            if (start.H < 0 || start.V < 0)
+            {
+                // THROW?;
+                Console.WriteLine("unable to find a starting position");
+            }
+            //     console.log(start);
+            //     console.log(end);
+
+            var paths = new List<Path>();
+            paths.Add(new Path() { PathString = "$", VisitedNodes = new List<Node>() { start }, PathCoordinates = new List<Node>() { start } });
+            // $BA
+            // C*B
+            // AA@
+
+            while (paths[paths.Count - 1].PathString.Length <= totalHops)
+            {
+                var prevRelevantPaths = paths.FindAll(f => f.PathString.Length == paths[paths.Count - 1].PathString.Length);
+                for (var i = 0; i < prevRelevantPaths.Count; i++)
+                {
+                    var element = prevRelevantPaths[i];
+                    var nextNodes = GenerateNext(element.PathCoordinates[element.PathCoordinates.Count - 1]);
+                    for (var j = 0; j < nextNodes.Count; j++)
+                    {
+                        if (paths.Find(p => p.PathString == element.PathString)
+                            .VisitedNodes.Any(v => v.H == nextNodes[j].H && v.V == nextNodes[j].V))
+                        {
+                            continue;
+                        }
+                        if (Map[nextNodes[j].H][nextNodes[j].V] == '*')
+                        {
+                            continue;
+                        }
+
+                        var path = new Path()
+                        {
+                            PathString = element.PathString + Map[nextNodes[j].H][nextNodes[j].V],
+                            VisitedNodes = new List<Node>(element.VisitedNodes) { nextNodes[j] },
+                            PathCoordinates = new List<Node>(element.PathCoordinates) { nextNodes[j] }
+                        };
+                        paths.Add(path);
+                    };
+                }
+            }
+            paths = paths.FindAll(f => f.PathCoordinates.Count > totalHops);
+            //Console.WriteLine(paths);
+            return paths;
+        }
+
+        public List<Node> GenerateNext(Node node)
+        {
+            var height = Map.Length;
+            var width = Map[0].Length;
+            //   console.log(height, width);
+
+            //Console.WriteLine(node.H.ToString(), node.V.ToString());
+            var right = new Node() { H = node.H + 1, V = node.V };
+            var left = new Node() { H = node.H - 1, V = node.V };
+            var up = new Node() { H = node.H, V = node.V - 1 };
+            var down = new Node() { H = node.H, V = node.V + 1 };
+
+            //   console.log([right, left, up, down]);
+            var validNodes = (new List<Node>() { right, left, up, down }).FindAll(f => f.H > -1 && f.V > -1 && f.H < width && f.V < height);
+            return validNodes;
+        }
+        public List<PlayerCost> calculateCosts(List<Path> paths)
+        {
+            var playerCosts = new List<PlayerCost>();
+            for (var playerIndex = 0; playerIndex < players.Count; playerIndex++)
+            {
+                var player = players[playerIndex];
+                for (var pathIndex = 0; pathIndex < paths.Count; pathIndex++)
+                {
+                    var path = paths[pathIndex];
+                    var playerCost = new PlayerCost() { Name = player.Name, TotalCost = 0, Path = path.PathString };
+                    for (var i = 0; i < path.PathString.Length; i++)
+                    {
+                        var charAti = path.PathString[i];
+                        if (charAti == '$')
+                        {
+                            continue;
+                        }
+                        if (charAti == '@')
+                        {
+                            playerCost.TotalCost++;
+                            continue;
+                        }
+                        playerCost.TotalCost += player.Tiles.Find(f => f.Terrain == charAti).Cost;
+                    }
+                    playerCosts.Add(playerCost);
+                }
+            }
+            return playerCosts;
+        }
+    }
+}
+
+
+
+// $BA
+// C*B
+// AA@
