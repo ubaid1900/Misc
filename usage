@@ -1,0 +1,106 @@
+
+  <div *ngFor="let prod of products" appHoverHighlight [appHighlightColor]="{backColor: 'black', foreColor: 'wheat'}">
+    {{prod.name | mixedCase}} &nbsp; {{prod.sellBy | date}} &nbsp; {{prod.price | currency}}
+  </div>
+</div>
+      <hr>
+      <form [formGroup]="fg" id="reactiveForm" (ngSubmit)="submitFG()" name="RF" id="RF">
+        <label for="nameFG"></label>
+        <input type="text" id="nameFG" name="name" formControlName="name">
+        <div style="color: red;" *ngIf="fg.get('name').errors?.required">*</div>
+        <div style="color: red;" *ngIf="fg.get('name').errors?.minlength">3</div>
+        <div style="color: red;" *ngIf="fg.get('name').errors?.maxlength">10</div>
+        <div style="color: red;" *ngIf="fg.get('name').errors?.spaces">Just spaces are not allowed.</div>
+        {{fg.get('name').valid}}
+        <div formArrayName="tags">
+          <h3>Tags</h3>
+          <button type="button" (click)="addTag()" [disabled]="fg.get('tags').status === 'INVALID'">Add Tag</button>
+          <div *ngFor="let tag of tags.controls; let i = index;">
+            <input type="text" [formControlName]="i">
+            <button id="removeTag" (click)="removeTag(i)">-</button>
+          </div>
+        </div>
+      </form>
+      <div>{{fg.get('tags').status}}</div>
+      <div style="color: red;" *ngIf="fg.errors?.duplicateTags">Please remove duplicate tags</div>
+  <hr/>
+      <form #productForm="ngForm" (ngSubmit)="submitTD()" name="TD" id="TD">
+        <label for="nameTD"></label>
+        <input type="text" id="nameTD" name="name" [(ngModel)]="product.name" #pName="ngModel" required minlength="3"
+               maxlength="10" appValidateAfterLength="3">
+        <label for="propTD"></label>
+        <input type="text" id="propTD" name="prop" [(ngModel)]="product.prop" #pProp="ngModel">
+        <div style="color: red;" *ngIf="pName.errors?.required">*</div>
+        <div style="color: red;" *ngIf="pName.errors?.minlength">3</div>
+        <div style="color: red;" *ngIf="pName.errors?.maxlength">10</div>
+        <div style="color: red;" *ngIf="pName.errors?.spaces">Just spaces are not allowed.</div>
+        <div>
+          <h3>tags</h3>
+          <input #tag name="tag" type="text">
+          <input #tag name="tag" type="text">
+          <input #tag name="tag" type="text">
+        </div>
+        <div style="color: red;" *ngIf="productForm.errors?.duplicateTags">Please remove duplicate tags</div>
+      </form>
+      {{pName.valid}}
+      
+////////////////////////////////////////////////////
+
+product: Product;
+  products: Product[] = [];
+  constructor(private fb: FormBuilder) {
+
+    this.product = new Product();
+    this.product.name = 'Laptop';
+    this.product.tags = ['tag1', 'tag2'];
+    this.product.sellBy = new Date('12/22/2021');
+    this.product.price = 99;
+
+    this.products.push(this.product);
+    this.products.push({name: 'Mouse', prop: 'extra', tags: ['tagA', 'tagB'], sellBy: new Date(), price: 100});
+
+    this.fg = this.fb.group({
+      name: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(10), noSpaces2(3)]],
+      tags: this.fb.array([])
+    }, {validators: noDuplicateTags});
+
+    const tt = this.product.tags.map(t => {
+      this.tags.push(
+        new FormControl(t,
+          [Validators.required, Validators.minLength(3), Validators.maxLength(10)]));
+    });
+    console.log(tt);
+
+    this.maxDate = moment().add(0,  'days');
+    this.minDate = moment().subtract(3, 'days');
+
+    this.alwaysShowCalendars = true;
+    this.keepCalendarOpeningWithRange = true;
+    this.showRangeLabelOnInput = true;
+    this.selected = {startDate: moment().subtract(1, 'days'), endDate: moment().subtract(1, 'days')};
+    setTimeout(() => {
+      this.invalidDates = [moment().add(2, 'days'), moment().add(3, 'days'), moment().add(5, 'days')];
+    }, 5000);
+  }
+      
+   ////////////////////////////////   
+        submitFG() {
+    console.log(this.fg.value);
+    console.log(JSON.stringify(this.fg.value));
+  }
+  get tags() {
+    return this.fg.get('tags') as FormArray;
+  }
+
+  addTag() {
+    this.tags.push(new FormControl('', [Validators.required, Validators.minLength(3), Validators.maxLength(10)]));
+    // console.log(this.fg.value);
+  }
+
+  submitTD() {
+
+  }
+
+  removeTag(i: number) {
+    this.tags.removeAt(i);
+  }
